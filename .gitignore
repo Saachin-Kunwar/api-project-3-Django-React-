@@ -34,3 +34,5 @@ build/
 # React environment files
 frontend/.env
 frontend/.env.*
+
+README.md
