@@ -1,20 +1,38 @@
-from django.contrib import admin
+from rest_framework import serializers
 from .models import Product
-# Register your models here
-
-@admin.register(Product)
-class ProductAdmin(admin.ModelAdmin):
-    list_display=(
-        "id","name","price","stock","owner","created_at",
-    )
-
-    list_filter=(
-        "owner",
-    )
-
-    search_fields=(
-        "name",
-        "description",
-    )
 
 
+class ProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = [
+            "id",
+            "name",
+            "price",
+            "description",
+            "stock",
+            "owner",
+            "created_at",
+            "updated_at",
+        ]
+
+        read_only_fields = [
+            "id",
+            "owner",
+            "created_at",
+            "updated_at",
+        ]
+    def validate_price(self,value):
+        if value <0:
+            raise serializers.ValidationError(
+                "Price cannot be negative"
+            )
+        return value
+    
+    def validate_stock(self,value):
+        if value <0:
+            raise serializers.ValidationError(
+                "Stock cannot be negative"
+            )
+        return value
+        
