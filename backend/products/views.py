@@ -57,11 +57,11 @@ from .models import Product
 from .serializers import ProductSerializer
 from .permissions import IsOwner
 
-class ProductViewSer(ModelViewSet):
+class ProductViewSet(ModelViewSet):
     queryset= Product.objects.all()
     serializer_class = ProductSerializer
 
-    authentication_classes = [SessionAuthentication]
+    #authentication_classes = [SessionAuthentication]
 
     def get_permissions(self):
         if self.action in ["update", "partial_update", "destroy"]:
