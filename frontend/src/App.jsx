@@ -8,9 +8,16 @@ import { apiFetch } from "./services/api";
 function App() {
   const [products, setProducts] = useState([]);
 
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+
   // Get all products
   const getProducts = async () => {
     try {
+      setLoading(true);
+      setError("");
+
       const response = await apiFetch("/products/");
 
       if (!response.ok) {
@@ -22,8 +29,14 @@ function App() {
       console.log("Products:", data);
 
       setProducts(data);
+
     } catch (error) {
       console.error("Product API Error:", error);
+
+      setError("Unable to load products.");
+
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -36,22 +49,34 @@ function App() {
 
   return (
     <div>
-      {/* Login */}
       <Login />
 
       <hr />
 
-      {/* Create Product */}
       <ProductForm onProductCreated={getProducts} />
 
       <hr />
 
-      {/* Product List */}
       <h1>Products</h1>
 
-      {products.length === 0 ? (
+
+      {/* Loading State */}
+      {loading && <p>Loading products...</p>}
+
+
+      {/* Error State */}
+      {!loading && error && (
+        <p>{error}</p>
+      )}
+
+
+      {/* Product List */}
+      {!loading && !error && products.length === 0 && (
         <p>No products found.</p>
-      ) : (
+      )}
+
+
+      {!loading && !error && products.length > 0 && (
         products.map((product) => (
           <div key={product.id}>
             <h2>{product.name}</h2>
@@ -66,8 +91,10 @@ function App() {
           </div>
         ))
       )}
+
     </div>
   );
 }
+
 
 export default App;
