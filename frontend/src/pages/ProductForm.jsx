@@ -1,11 +1,25 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { apiFetch } from "../services/api";
 
-function ProductForm({ onProductCreated }) {
+function ProductForm({
+  onProductCreated,
+  editingProduct,
+  onProductUpdated,
+}) {
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
   const [stock, setStock] = useState("");
+
+  // Edit गर्दा existing data form मा राख्ने
+  useEffect(() => {
+    if (editingProduct) {
+      setName(editingProduct.name);
+      setPrice(editingProduct.price);
+      setDescription(editingProduct.description);
+      setStock(editingProduct.stock);
+    }
+  }, [editingProduct]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,39 +32,56 @@ function ProductForm({ onProductCreated }) {
     };
 
     try {
-      const response = await apiFetch("/products/", {
-        method: "POST",
-        body: JSON.stringify(productData),
-      });
+      let response;
+
+      if (editingProduct) {
+        // UPDATE
+        response = await apiFetch(
+          `/products/${editingProduct.id}/`,
+          {
+            method: "PATCH",
+            body: JSON.stringify(productData),
+          }
+        );
+      } else {
+        // CREATE
+        response = await apiFetch("/products/", {
+          method: "POST",
+          body: JSON.stringify(productData),
+        });
+      }
 
       const data = await response.json();
 
-      console.log("Create response:", data);
+      console.log("Product response:", data);
 
       if (!response.ok) {
-        console.error("Create product failed:", data);
+        console.error("Product operation failed:", data);
         return;
       }
 
-      console.log("Product created successfully:", data);
-
-      // Form clear
       setName("");
       setPrice("");
       setDescription("");
       setStock("");
 
-      // Product list refresh
-      onProductCreated();
-
+      if (editingProduct) {
+        console.log("Product updated:", data);
+        onProductUpdated();
+      } else {
+        console.log("Product created:", data);
+        onProductCreated();
+      }
     } catch (error) {
-      console.error("Create product error:", error);
+      console.error("Product error:", error);
     }
   };
 
   return (
     <div>
-      <h2>Create Product</h2>
+      <h2>
+        {editingProduct ? "Edit Product" : "Create Product"}
+      </h2>
 
       <form onSubmit={handleSubmit}>
         <div>
@@ -82,7 +113,9 @@ function ProductForm({ onProductCreated }) {
           <br />
           <textarea
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={(e) =>
+              setDescription(e.target.value)
+            }
           />
         </div>
 
@@ -101,7 +134,9 @@ function ProductForm({ onProductCreated }) {
         <br />
 
         <button type="submit">
-          Create Product
+          {editingProduct
+            ? "Update Product"
+            : "Create Product"}
         </button>
       </form>
     </div>
