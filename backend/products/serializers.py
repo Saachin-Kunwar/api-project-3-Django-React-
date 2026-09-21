@@ -7,3 +7,20 @@ class ProductSerializer(serializers.ModelSerializer):
         fields=[
             "id","name","price","description","stock","owner","created_at","updated_at",
         ]
+        read_only_fields=[
+            "id","owner","created_at","updated_at",
+        ]
+    
+    def validate_price(self,value):
+        if value <0:
+            raise serializers.ValidationError(
+                "Price cannot be negative"
+            )
+        return value
+    
+    def validate_stock(self,value):
+        if value <0:
+            raise serializers.ValidationError(
+                "Stock cannot be negative."
+            )
+        return value
