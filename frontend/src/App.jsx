@@ -12,6 +12,11 @@ function App() {
   // Currently editing product
   const [editingProduct, setEditingProduct] = useState(null);
 
+  // Authentication state
+  const [isLoggedIn, setIsLoggedIn] = useState(
+    !!localStorage.getItem("access")
+  );
+
   // Get all products
   const getProducts = async () => {
     try {
@@ -36,17 +41,23 @@ function App() {
     }
   };
 
-  // Load products when App starts
+  // Load products only when user is logged in
   useEffect(() => {
-    getProducts();
-  }, []);
+    if (isLoggedIn) {
+      getProducts();
+    } else {
+      setProducts([]);
+      setLoading(false);
+      setError("");
+    }
+  }, [isLoggedIn]);
 
-  // Edit button click
+  // Edit product
   const handleEdit = (product) => {
     setEditingProduct(product);
   };
 
-  // Product update successful
+  // Product updated
   const handleProductUpdated = async () => {
     await getProducts();
 
@@ -74,7 +85,6 @@ function App() {
       if (!response.ok) {
         let data = {};
 
-        // DELETE response may not contain JSON
         try {
           data = await response.json();
         } catch {
@@ -101,77 +111,94 @@ function App() {
 
   return (
     <div>
-      {/* Login */}
-      <Login />
-
-      <hr />
-
-      {/* Create / Edit Product Form */}
-      <ProductForm
-        onProductCreated={getProducts}
-        editingProduct={editingProduct}
-        onProductUpdated={handleProductUpdated}
+      {/* Login / Logout */}
+      <Login
+        isLoggedIn={isLoggedIn}
+        setIsLoggedIn={setIsLoggedIn}
       />
 
       <hr />
 
-      {/* Product List */}
-      <h1>Products</h1>
+      {/* Protected Product Area */}
+      {isLoggedIn ? (
+        <>
+          {/* Create / Edit Product */}
+          <ProductForm
+            onProductCreated={getProducts}
+            editingProduct={editingProduct}
+            onProductUpdated={handleProductUpdated}
+          />
 
-      {/* Loading */}
-      {loading && (
-        <p>Loading products...</p>
+          <hr />
+
+          {/* Product List */}
+          <h1>Products</h1>
+
+          {/* Loading */}
+          {loading && (
+            <p>Loading products...</p>
+          )}
+
+          {/* Error */}
+          {!loading && error && (
+            <p>{error}</p>
+          )}
+
+          {/* No Products */}
+          {!loading &&
+            !error &&
+            products.length === 0 && (
+              <p>No products found.</p>
+            )}
+
+          {/* Products */}
+          {!loading &&
+            !error &&
+            products.length > 0 &&
+            products.map((product) => (
+              <div key={product.id}>
+                <h2>{product.name}</h2>
+
+                <p>
+                  Price: {product.price}
+                </p>
+
+                <p>
+                  Stock: {product.stock}
+                </p>
+
+                <p>
+                  Description: {product.description}
+                </p>
+
+                {/* Edit */}
+                <button
+                  onClick={() =>
+                    handleEdit(product)
+                  }
+                >
+                  Edit
+                </button>
+
+                {/* Delete */}
+                <button
+                  onClick={() =>
+                    handleDelete(product.id)
+                  }
+                >
+                  Delete
+                </button>
+
+                <hr />
+              </div>
+            ))}
+        </>
+      ) : (
+        /* User is not logged in */
+        <p>
+          Please login to access products.
+        </p>
       )}
-
-      {/* Error */}
-      {!loading && error && (
-        <p>{error}</p>
-      )}
-
-      {/* Empty */}
-      {!loading &&
-        !error &&
-        products.length === 0 && (
-          <p>No products found.</p>
-        )}
-
-      {/* Products */}
-      {!loading &&
-        !error &&
-        products.length > 0 &&
-        products.map((product) => (
-          <div key={product.id}>
-            <h2>{product.name}</h2>
-
-            <p>
-              Price: {product.price}
-            </p>
-
-            <p>
-              Stock: {product.stock}
-            </p>
-
-            <p>
-              Description: {product.description}
-            </p>
-
-            {/* Edit */}
-            <button
-              onClick={() => handleEdit(product)}
-            >
-              Edit
-            </button>
-
-            {/* Delete */}
-            <button
-              onClick={() => handleDelete(product.id)}
-            >
-              Delete
-            </button>
-
-            <hr />
-          </div>
-        ))}
     </div>
   );
 }
