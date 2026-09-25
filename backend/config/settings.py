@@ -143,6 +143,17 @@ REST_FRAMEWORK = {
     ],
 }
 
+#token ko lagi
+from datetime import timedelta
+SIMPLE_JWT={
+    "ACCESS_TOKEN_LIFETIME": timedelta(seconds=30),
+    "REFRESH_TOKEN_LIFETIME": timedelta(minutes=5),
+}
+
+
+
+
+
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
 ]
